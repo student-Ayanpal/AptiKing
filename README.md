@@ -1,170 +1,105 @@
-# 👑 Aptiking - Your All-in-One Aptitude Portal
+👑 AptiKing — Your All-in-One Aptitude Portal
 
-Aptiking is a comprehensive web application built with Streamlit, designed to be a one-stop solution for students preparing for aptitude tests. It provides customizable quizzes, study materials, an AI-powered doubt solver, and progress tracking to help users master quantitative, logical, and verbal reasoning.
+A comprehensive aptitude preparation platform built with Streamlit.
+AptiKing helps students practice, learn, and master Quantitative, Logical, and Verbal reasoning — all in one place.
 
----
+🌟 Overview
 
-## ✨ Features
+AptiKing is an interactive aptitude portal featuring customizable quizzes, study materials, AI-powered doubt solving, and progress tracking.
+It’s designed to make aptitude preparation smarter, faster, and more engaging.
 
-* **Secure User Authentication:** Full user registration and login system with password hashing (`hashlib`) and session persistence using `streamlit-local-storage`.
-* **Custom Quiz Engine:** Users can create fully customized tests based on:
-    * **Category:** Quantitative, Logical, and Verbal.
-    * **Topics:** Select one or more topics from the database.
-    * **Difficulty:** Easy, Medium, Hard, or All.
-    * **Number of Questions:** User-defined.
-    * **Time Limit:** User-defined.
-* **Live Quiz Interface:** A real-time quiz environment with a live countdown timer (`streamlit-autorefresh`) and auto-submission when time runs out.
-* **Instant Results:** Immediate scoring, accuracy calculation, and a detailed breakdown of correct, incorrect, and unattempted questions.
-* **Progress Dashboard:**
-    * A line graph (`st.line_chart`) visualizing scores from the user's last 5 tests.
-    * A complete table of the user's test history fetched from the database.
-* **Study Hub:**
-    * Downloadable PDF cheatsheets for specific topics.
-    * **Video Recommendations:** Automatically fetches and displays relevant YouTube video thumbnails and links for the selected topic using the YouTube Data API v3.
-* **AI Doubt Solver:** An integrated chatbot (powered by the Google Gemini API) to answer any aptitude-related questions 24/7.
-* **Dynamic UI:** A clean, multi-page interface with custom-styled buttons and containers.
+✨ Features
+🧑‍💻 User System
 
----
+🔐 Secure Authentication with password hashing (hashlib)
 
-## 🚀 Tech Stack
+💾 Session Persistence via streamlit-local-storage
 
-* **Frontend:** [Streamlit](https://streamlit.io/)
-* **Backend:** [Python 3](https://www.python.org/)
-* **Database:** [MySQL](https://www.mysql.com/)
-* **Core Libraries:**
-    * `pandas`
-    * `google-generativeai` (Gemini API)
-    * `google-api-python-client` (YouTube Data API)
-    * `streamlit-local-storage` (Login Persistence)
-    * `streamlit-autorefresh` (Quiz Timer)
-    * `mysql-connector-python` (Database Connection)
+🧠 Custom Quiz Engine
 
----
+Choose by:
 
-## 💻 Getting Started
+Category: Quantitative / Logical / Verbal
 
-Follow these steps to set up and run the project locally.
+Topics: Select multiple from DB
 
-### 1. Prerequisites
+Difficulty: Easy / Medium / Hard / All
 
-* Python 3.10+
-* A MySQL server (e.g., [WAMP](https://www.wampserver.com/en/) or [XAMPP](https://www.apachefriends.org/index.html))
-* A Google account to get API keys.
+No. of Questions & Time Limit — user-defined
 
-### 2. Clone the Repository
+⏰ Live Countdown Timer (streamlit-autorefresh) with auto-submit
 
-```bash
+📊 Instant Results showing accuracy and answer breakdown
+
+📈 Progress Dashboard
+
+📉 Line graph (st.line_chart) of your last 5 test scores
+
+🧾 Full test history table from the database
+
+📚 Study Hub
+
+📘 Downloadable Cheatsheets (PDFs)
+
+▶️ Smart Video Recommendations — YouTube videos fetched dynamically using YouTube Data API v3
+
+🤖 AI Doubt Solver
+
+💬 Powered by Google Gemini API for 24×7 aptitude doubt assistance
+
+🎨 Dynamic UI
+
+🧩 Multi-page layout with custom-styled buttons and responsive design
+
+🚀 Tech Stack
+Layer	Technologies
+Frontend	Streamlit
+
+Backend	Python 3
+
+Database	MySQL
+
+Core Libraries	pandas, google-generativeai, google-api-python-client, streamlit-local-storage, streamlit-autorefresh, mysql-connector-python
+⚙️ Getting Started
+1️⃣ Prerequisites
+
+🐍 Python 3.10+
+
+🗄️ MySQL Server (e.g. WAMP
+ / XAMPP
+)
+
+🔑 Google API Keys for Gemini & YouTube Data API
+
+2️⃣ Clone the Repository
 git clone https://github.com/student-Ayanpal/AptiKing
 
-Here is a complete README.md file for your Aptiking project. You can copy this, save it as README.md in your main project folder (e.g., Aptiking/), and upload it to GitHub.
-
-Markdown
-
-# 👑 Aptiking - Your All-in-One Aptitude Portal
-
-Aptiking is a comprehensive web application built with Streamlit, designed to be a one-stop solution for students preparing for aptitude tests. It provides customizable quizzes, study materials, an AI-powered doubt solver, and progress tracking to help users master quantitative, logical, and verbal reasoning.
-
----
-
-## ✨ Features
-
-* **Secure User Authentication:** Full user registration and login system with password hashing (`hashlib`) and session persistence using `streamlit-local-storage`.
-* **Custom Quiz Engine:** Users can create fully customized tests based on:
-    * **Category:** Quantitative, Logical, and Verbal.
-    * **Topics:** Select one or more topics from the database.
-    * **Difficulty:** Easy, Medium, Hard, or All.
-    * **Number of Questions:** User-defined.
-    * **Time Limit:** User-defined.
-* **Live Quiz Interface:** A real-time quiz environment with a live countdown timer (`streamlit-autorefresh`) and auto-submission when time runs out.
-* **Instant Results:** Immediate scoring, accuracy calculation, and a detailed breakdown of correct, incorrect, and unattempted questions.
-* **Progress Dashboard:**
-    * A line graph (`st.line_chart`) visualizing scores from the user's last 5 tests.
-    * A complete table of the user's test history fetched from the database.
-* **Study Hub:**
-    * Downloadable PDF cheatsheets for specific topics.
-    * **Video Recommendations:** Automatically fetches and displays relevant YouTube video thumbnails and links for the selected topic using the YouTube Data API v3.
-* **AI Doubt Solver:** An integrated chatbot (powered by the Google Gemini API) to answer any aptitude-related questions 24/7.
-* **Dynamic UI:** A clean, multi-page interface with custom-styled buttons and containers.
-
----
-
-## 🚀 Tech Stack
-
-* **Frontend:** [Streamlit](https://streamlit.io/)
-* **Backend:** [Python 3](https://www.python.org/)
-* **Database:** [MySQL](https://www.mysql.com/)
-* **Core Libraries:**
-    * `pandas`
-    * `google-generativeai` (Gemini API)
-    * `google-api-python-client` (YouTube Data API)
-    * `streamlit-local-storage` (Login Persistence)
-    * `streamlit-autorefresh` (Quiz Timer)
-    * `mysql-connector-python` (Database Connection)
-
----
-
-## 💻 Getting Started
-
-Follow these steps to set up and run the project locally.
-
-### 1. Prerequisites
-
-* Python 3.10+
-* A MySQL server (e.g., [WAMP](https://www.wampserver.com/en/) or [XAMPP](https://www.apachefriends.org/index.html))
-* A Google account to get API keys.
-
-### 2. Clone the Repository
-
-```bash
-git clone [https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git)
-cd YOUR_REPO_NAME
-3. Set Up the Environment
-Bash
-
+3️⃣ Set Up the Environment
 # Create a virtual environment
 python -m venv venv
 
-# Activate the environment
+# Activate it
 # On Windows:
 .\venv\Scripts\activate
 # On macOS/Linux:
-# source venv/bin/activate
+source venv/bin/activate
 
-# Install the required packages
+# Install dependencies
 pip install -r requirements.txt
-4. Set Up the Database
-Start your MySQL server (e.g., WAMP).
 
-Access your MySQL console or a tool like phpMyAdmin.
-
-Create a new database named aptitude_db.
-
-SQL
-
+4️⃣ Set Up the Database
 CREATE DATABASE aptitude_db;
 USE aptitude_db;
-Run the SQL commands in database_schema.sql (you'll need to create this file) to create the tables:
 
-users
 
-topics
+Run your database_schema.sql file to create the following tables:
+users, topics, questions, tests, test_results
 
-questions
+💡 (Optional) Insert sample data into topics and questions for quick testing.
 
-tests
+5️⃣ Configure Secrets
 
-test_results
-
-(Optional) Insert sample data into your topics and questions tables.
-
-5. Configure Secrets
-In the root of your project, create a folder named .streamlit.
-
-Inside .streamlit, create a file named secrets.toml.
-
-Add your database credentials and API keys:
-
-Ini, TOML
+Create a .streamlit folder in your root directory, then add a secrets.toml file:
 
 # .streamlit/secrets.toml
 
@@ -177,8 +112,32 @@ DB_NAME = "aptitude_db"
 # API Keys
 GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE"
 YOUTUBE_API_KEY = "YOUR_YOUTUBE_API_KEY_HERE"
-6. Run the App
-Bash
 
+6️⃣ Run the App
 streamlit run Home.py
-Your app will open in your browser at http://localhost:8501.
+
+
+Your app will open automatically at:
+👉 http://localhost:8501
+
+🧩 Future Enhancements
+
+🏆 Leaderboard with global ranking
+
+📱 Mobile-responsive layout
+
+🗂️ Admin panel for managing questions & users
+
+🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+Feel free to fork this repo and submit a PR.
+
+💖 Support
+
+If you like this project, give it a ⭐ on GitHub — it really helps!
+
+🧑‍💼 Author
+
+Ayan Pal
+📬 GitHub
