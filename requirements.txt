@@ -1,0 +1,9 @@
+streamlit
+mysql-connector-python
+pandas
+matplotlib
+numpy
+streamlit-autorefresh
+google-generativeai
+streamlit-local-storage
+google-api-python-client
