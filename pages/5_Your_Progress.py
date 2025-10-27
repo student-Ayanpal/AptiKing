@@ -2,8 +2,9 @@ import streamlit as st
 from db_connector import get_db_connection
 import mysql.connector
 import pandas as pd
-# DO NOT import LocalStorage globally
+from streamlit_local_storage import LocalStorage # Corrected import
 import time # Import time
+import matplotlib.pyplot as plt # Import Matplotlib
 
 # --- Page configuration ---
 st.set_page_config(page_title="Your Progress", layout="wide")
@@ -192,10 +193,60 @@ last_5_scores_data = get_last_5_scores(user_id)
 if not last_5_scores_data:
     st.info("No tests completed yet.")
 else:
-    df_scores = pd.DataFrame(last_5_scores_data).iloc[::-1].reset_index(drop=True)
-    df_scores.rename(columns={'score': 'Score'}, inplace=True)
+    # Convert to DataFrame
+    df_scores = pd.DataFrame(last_5_scores_data)
+    
+    # We reverse the order so the chart shows time from left to right
+    df_scores = df_scores.iloc[::-1].reset_index(drop=True)
+    
+    # Create a simple "Test 1, Test 2..." label for the x-axis
     df_scores['Test Number'] = [f"Test {i+1}" for i in df_scores.index]
-    st.line_chart(df_scores, x='Test Number', y='Score')
+    
+    # --- NEW: Matplotlib Bar Chart ---
+    try:
+        # --- FIX: Set a smaller figure size ---
+        fig, ax = plt.subplots(figsize=(8, 4)) # Width=8, Height=4
+        
+        # Set dark background to match Streamlit theme
+        fig.patch.set_facecolor('#0E1117') # Main background
+        ax.set_facecolor('#0E1117') # Plot background
+        
+        # Create the bar chart
+        bars = ax.bar(
+            df_scores['Test Number'],
+            df_scores['score'], # Use original 'score' column
+            color='#FF4B4B' # Use the red button color
+        )
+        
+        # Customize labels and ticks for dark theme
+        ax.set_xlabel('Test', color='white')
+        ax.set_ylabel('Score (%)', color='white')
+        ax.set_title('Last 5 Test Scores', color='white')
+        ax.tick_params(axis='x', colors='white')
+        ax.tick_params(axis='y', colors='white')
+        
+        # Change spine colors (the box border)
+        ax.spines['top'].set_color('#555')
+        ax.spines['right'].set_color('#555')
+        ax.spines['bottom'].set_color('white')
+        ax.spines['left'].set_color('white')
+
+        # Add score labels on top of each bar
+        for bar in bars:
+            height = bar.get_height()
+            ax.annotate(f'{height:.0f}', # Format as integer
+                        xy=(bar.get_x() + bar.get_width() / 2, height),
+                        xytext=(0, 3),  # 3 points vertical offset
+                        textcoords="offset points",
+                        ha='center', va='bottom',
+                        color='white') # Label color
+
+        # Display the Matplotlib figure in Streamlit
+        st.pyplot(fig)
+        
+    except Exception as e:
+        st.error(f"An error occurred while creating the chart: {e}")
+    # --- END: Matplotlib Bar Chart ---
 
 
 st.divider()
@@ -206,11 +257,18 @@ if not history_data:
 else:
     df_history = pd.DataFrame(history_data)
     # Ensure 'test_timestamp' is datetime before formatting
-    df_history['test_timestamp'] = pd.to_datetime(df_history['test_timestamp'], errors='coerce') # Add coerce
-    df_history.dropna(subset=['test_timestamp'], inplace=True) # Drop rows where conversion failed
+    df_history['test_timestamp'] = pd.to_datetime(df_history['test_timestamp'], errors='coerce')
+    df_history.dropna(subset=['test_timestamp'], inplace=True)
     df_history['Date & Time'] = df_history['test_timestamp'].dt.strftime('%Y-%m-%d %I:%M %p')
-    df_history.rename(columns={'test_id': 'ID', 'score': 'Score (%)', 'total_questions': 'Total Qs'}, inplace=True)
-    # Select and display relevant columns
+    
+    # Rename columns for the table
+    df_history.rename(columns={
+        'test_id': 'ID',
+        'score': 'Score (%)',
+        'total_questions': 'Total Qs' # <-- Renamed to 'Total Qs' (no space)
+    }, inplace=True)
+    
+    # --- FIX: Use correct column name 'Total Qs' ---
     st.dataframe(df_history[['ID', 'Date & Time', 'Score (%)', 'Total Qs']], use_container_width=True, hide_index=True)
 
 

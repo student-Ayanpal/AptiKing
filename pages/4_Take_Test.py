@@ -6,13 +6,78 @@ import pandas as pd
 import random
 from streamlit_autorefresh import st_autorefresh
 # DO NOT import LocalStorage globally anymore
-# from streamlit_local_storage import LocalStorage
+# time is already imported above
 
 # --- Page configuration ---
 st.set_page_config(page_title="Take a Test", layout="wide")
 
-# --- Inject CSS (Optional - if styling buttons with CSS) ---
-# st.markdown("""<style>...</style>""", unsafe_allow_html=True)
+# --- Inject CSS for Question Panel Buttons ---
+st.markdown("""
+<style>
+/* --- Styling for the new Question Panel --- */
+
+/* Base style for ALL panel buttons */
+/* This targets any button that is a sibling (+) immediately after our status divs */
+div.status-red + div[data-testid="stButton"] button,
+div.status-green + div[data-testid="stButton"] button,
+div.status-purple + div[data-testid="stButton"] button,
+div.status-current + div[data-testid="stButton"] button {
+    width: 100% !important;
+    height: 45px !important; /* Uniform height */
+    font-size: 1.1em !important; /* Slightly larger font */
+    font-weight: bold !important;
+    border: 1px solid #555 !important;
+    color: white !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7) !important;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease !important;
+}
+
+/* --- Status-specific colors --- */
+
+/* RED (Default/Unattempted) */
+div.status-red + div[data-testid="stButton"] button {
+    background-color: #FF4B4B !important; /* Red */
+}
+div.status-red + div[data-testid="stButton"] button:hover {
+    background-color: #DC3545 !important; /* Darker red */
+}
+
+/* GREEN (Attempted) */
+div.status-green + div[data-testid="stButton"] button {
+    background-color: #28a745 !important; /* Green */
+}
+div.status-green + div[data-testid="stButton"] button:hover {
+    background-color: #218838 !important;
+}
+
+/* PURPLE (Marked for Review) */
+div.status-purple + div[data-testid="stButton"] button {
+    background-color: #8A2BE2 !important; /* Purple */
+}
+div.status-purple + div[data-testid="stButton"] button:hover {
+    background-color: #7019C8 !important;
+}
+
+/* BLUE (Current Question) */
+div.status-current + div[data-testid="stButton"] button {
+    background-color: #007BFF !important; /* Streamlit Blue */
+    border: 3px solid #FFD700 !important; /* Gold border */
+    box-shadow: 0 0 12px rgba(0,123,255,0.9) !important;
+}
+div.status-current + div[data-testid="stButton"] button:hover {
+    background-color: #0069D9 !important;
+    border-color: #FFF !important;
+}
+
+/* This hides the empty div we use as a marker */
+.status-red, .status-green, .status-purple, .status-current {
+    display: none;
+}
+
+</style>
+""", unsafe_allow_html=True)
+# --- End CSS ---
+
 
 # --- (NEW) Startup Check Function ---
 def run_startup_check():
@@ -61,17 +126,12 @@ def run_startup_check():
                   localS_check.setItem('user_id', None, key="clear_userid_old_false_test")
                   localS_check.setItem('username', None, key="clear_username_old_false_test")
         # --- End Stricter Check ---
-
-        # Update session state based ONLY on the final 'logged_in' status
         if logged_in and user_id is not None and username is not None:
-            st.session_state.logged_in = True
-            st.session_state.user_id = user_id
-            st.session_state.username = username
-        else: # Clear session state if not confirmed logged in
+            st.session_state.logged_in = True; st.session_state.user_id = user_id; st.session_state.username = username
+        else:
             if 'logged_in' in st.session_state: del st.session_state.logged_in
             if 'user_id' in st.session_state: del st.session_state.user_id
             if 'username' in st.session_state: del st.session_state.username
-
         st.session_state.startup_check_done = True
 # --- (END) Startup Check Function ---
 
@@ -85,27 +145,20 @@ if 'logged_in' in st.session_state and st.session_state.logged_in:
     if st.sidebar.button("Logout", key="logout_test_sidebar"):
         from streamlit_local_storage import LocalStorage # Import locally
         localS_logout = LocalStorage() # Initialize locally
-        # --- Explicitly set logged_in to False, others to None ---
-        localS_logout.setItem('logged_in', False, key="logout_set_login_status_test") # Unique key
-        localS_logout.setItem('user_id', None, key="logout_set_userid_none_test")       # Unique key, use None
-        localS_logout.setItem('username', None, key="logout_set_username_none_test")   # Unique key, use None
-        # --- End new clearing logic ---
-
-        # Clear session state thoroughly FIRST
+        localS_logout.setItem('logged_in', False, key="logout_set_login_status_test")
+        localS_logout.setItem('user_id', None, key="logout_set_userid_none_test")
+        localS_logout.setItem('username', None, key="logout_set_username_none_test")
         keys_to_clear = list(st.session_state.keys())
         for key_to_del in keys_to_clear:
             if key_to_del != 'startup_check_done':
                  try: del st.session_state[key_to_del]
                  except KeyError: pass
-        # Short delay might help ensure storage write completes before rerun
-        time.sleep(0.2)
-        st.rerun()
+        time.sleep(0.2); st.rerun()
 else:
     st.sidebar.info("You are not logged in.")
 # --- End of sidebar code ---
 
 # --- SECURITY CHECK ---
-# Session state should be correctly set by the startup check before this runs
 if 'logged_in' not in st.session_state or not st.session_state.logged_in:
     st.error("You must be logged in to view this page.")
     st.page_link("pages/2_Login.py", label="Go to Login Page 🔐")
@@ -113,7 +166,6 @@ if 'logged_in' not in st.session_state or not st.session_state.logged_in:
 # --- END OF SECURITY CHECK ---
 
 # --- Helper Functions ---
-# (Placed before use, outside page logic functions)
 def get_topics_by_category(category):
     conn = None; cursor = None
     try:
@@ -152,25 +204,9 @@ def fetch_questions(topic_ids, difficulty, num_questions):
 def calculate_and_save_results():
     conn = None; cursor = None
     try:
-        # Check essential keys first
-        if 'user_answers' not in st.session_state or 'questions' not in st.session_state or 'user_id' not in st.session_state:
-            st.error("Session state incomplete. Cannot calculate results.")
-            # Attempt to clear potentially bad state and go back to setup
-            keys_to_keep = ['logged_in', 'username', 'user_id', 'startup_check_done']
-            for key in list(st.session_state.keys()):
-                if key not in keys_to_keep: del st.session_state[key]
-            # No rerun here, let it proceed to show error and maybe a back button later
-            return # Exit function
-
-        user_answers = st.session_state.user_answers
-        questions = st.session_state.questions
-        user_id = st.session_state.user_id
-
-        if not questions:
-            st.warning("No questions found in this test session.")
-            st.session_state.final_results = {"score": 0, "correct": 0, "wrong": 0, "unattempted": 0, "total": 0, "accuracy": 0, "results_df": pd.DataFrame()}
-            return
-
+        if 'user_answers' not in st.session_state or 'questions' not in st.session_state or 'user_id' not in st.session_state: st.error("Session state incomplete."); return
+        user_answers = st.session_state.user_answers; questions = st.session_state.questions; user_id = st.session_state.user_id
+        if not questions: st.warning("No questions found."); st.session_state.final_results = {"score": 0, "correct": 0, "wrong": 0, "unattempted": 0, "total": 0, "accuracy": 0, "results_df": pd.DataFrame()}; return
         correct_count = wrong_count = unattempted_count = 0; results_data = []; db_results = []
         for i, q in enumerate(questions):
             user_ans = user_answers.get(i); result_text = ""; is_correct_db = False; your_answer_text = ""; correct_option_key = f'option_{q.get("correct_option", "")}'; user_answer_key = f'option_{user_ans}' if user_ans else ""
@@ -183,7 +219,6 @@ def calculate_and_save_results():
             else: st.warning(f"Question missing ID at index {i}.")
         total_q = len(questions); score = (correct_count / total_q) * 100 if total_q > 0 else 0; attempted_q = correct_count + wrong_count; accuracy = (correct_count / attempted_q) * 100 if attempted_q > 0 else 0
         st.session_state.final_results = {"score": score, "correct": correct_count, "wrong": wrong_count, "unattempted": unattempted_count, "total": total_q, "accuracy": accuracy, "results_df": pd.DataFrame(results_data)}
-
         conn = get_db_connection();
         if not conn: raise mysql.connector.Error("DB connection failed for saving results.")
         cursor = conn.cursor(); test_query = "INSERT INTO tests (user_id, score, total_questions) VALUES (%s, %s, %s)"; cursor.execute(test_query, (user_id, int(score), total_q)); test_id = cursor.lastrowid
@@ -195,27 +230,59 @@ def calculate_and_save_results():
         if cursor: cursor.close()
         if conn and conn.is_connected(): conn.close()
 
-# --- Page Logic and State Management Functions ---
+# --- **** CORRECTED HELPER FUNCTIONS **** ---
+def update_current_question_status(action="move"):
+    """Updates the status of the current question based on answer. 'action' can be 'move' or 'mark'."""
+    q_index = st.session_state.current_question_index
+    
+    if 'question_statuses' not in st.session_state or q_index >= len(st.session_state.question_statuses):
+        return 
+
+    # If user marked for review, status is purple regardless of answer
+    if action == "mark":
+        st.session_state.question_statuses[q_index] = 'purple'
+    
+    # Don't override purple unless saving
+    elif st.session_state.question_statuses[q_index] != 'purple' or action == "save_and_next":
+        
+        # --- THIS IS THE KEY FIX ---
+        # Check the 'user_answers' dictionary for a saved answer
+        answer = st.session_state.user_answers.get(q_index)
+        # --- END FIX ---
+
+        if answer is not None: # Check if an answer exists in our dictionary
+            st.session_state.question_statuses[q_index] = 'green'
+        else:
+            # If no answer in our dictionary, it's red
+            st.session_state.question_statuses[q_index] = 'red'
+
+def on_panel_click(jump_index):
+    # First, update the status of the question we are LEAVING
+    update_current_question_status(action="move")
+    # NOW, set the new index
+    st.session_state.current_question_index = jump_index
+    # A rerun will be triggered by the button click
+# --- **** END CORRECTED HELPER FUNCTIONS **** ---
+
+
+# --- (3) Page Logic and State Management Functions ---
 def show_setup_form():
-    st.title("Create Your Custom Test 📝") # <-- TITLE HERE
-    # --- Startup Check logic needs to be run if this view loads first ---
-    run_startup_check() # Call the check function defined globally
+    st.title("Create Your Custom Test 📝")
+    run_startup_check() # Run startup check
 
     quant_topics = get_topics_by_category('Quantitative')
     logical_topics = get_topics_by_category('Logical')
     verbal_topics = get_topics_by_category('Verbal')
     with st.form("test_setup_form"):
-        st.subheader("1. Select Topics")
-        tab_q, tab_l, tab_v = st.tabs(["Quantitative", "Logical Reasoning", "Verbal Ability"])
+        st.subheader("1. Select Topics"); tab_q, tab_l, tab_v = st.tabs(["Quantitative", "Logical Reasoning", "Verbal Ability"])
         with tab_q: selected_quant = st.multiselect("Quantitative Topics", options=list(quant_topics.keys()))
         with tab_l: selected_logical = st.multiselect("Logical Reasoning Topics", options=list(logical_topics.keys()))
         with tab_v: selected_verbal = st.multiselect("Verbal Ability Topics", options=list(verbal_topics.keys()))
-        st.subheader("2. Customize Your Test")
-        col1, col2, col3 = st.columns(3)
+        st.subheader("2. Customize Your Test"); col1, col2, col3 = st.columns(3)
         with col1: num_questions = st.number_input("Number of Questions", min_value=1, max_value=50, value=10, step=1)
         with col2: difficulty = st.selectbox("Difficulty", options=['all', 'easy', 'medium', 'hard'], index=0)
         with col3: time_limit = st.number_input("Time Limit (minutes)", min_value=1, max_value=120, value=15, step=1)
-        start_button = st.form_submit_button("Start Test", use_container_width=True, type="primary") # Use primary here
+        start_button = st.form_submit_button("Start Test", use_container_width=True, type="primary")
 
     if start_button:
         selected_topic_names = selected_quant + selected_logical + selected_verbal
@@ -224,6 +291,9 @@ def show_setup_form():
         if not selected_topic_ids: st.error("Could not find IDs for selected topics."); st.stop()
         questions = fetch_questions(selected_topic_ids, difficulty, num_questions)
         if not questions: st.error("No questions found for your selection."); st.stop()
+        
+        st.session_state.question_statuses = ['red'] * len(questions)
+        
         st.session_state.test_in_progress = True; st.session_state.questions = questions; st.session_state.current_question_index = 0
         st.session_state.user_answers = {}; st.session_state.start_time = time.time()
         st.session_state.end_time = st.session_state.start_time + (time_limit * 60)
@@ -231,64 +301,172 @@ def show_setup_form():
         st.rerun()
 
 def show_quiz_interface():
-    st.title("Aptiking Test in Progress... ⏳") # <-- TITLE HERE
-    # --- Startup Check logic needs to be run if this view loads first ---
-    run_startup_check() # Call the check function defined globally
-
+    st.title("Aptiking Test in Progress... ⏳")
+    run_startup_check() # Run startup check
+    
     if 'end_time' not in st.session_state or 'start_time' not in st.session_state or 'questions' not in st.session_state: st.error("Test session error."); st.stop()
-    st_autorefresh(interval=1000, key="quiz_timer"); time_left = st.session_state.end_time - time.time()
+    
+    if st.session_state.get('test_in_progress', False):
+        st_autorefresh(interval=1000, key="quiz_timer")
+    
+    time_left = st.session_state.end_time - time.time()
 
-    # --- CORRECTED INDENTATION FOR TIME UP LOGIC ---
+    q_index = st.session_state.current_question_index
+    questions = st.session_state.questions
+    total_q = len(questions)
+
+    # --- Time Up Logic ---
     if time_left <= 0:
         if st.session_state.get('test_in_progress', False):
             st.warning("Time's up! Submitting...")
+            answer = st.session_state.get(f"q_{q_index}")
+            if answer: st.session_state.user_answers[q_index] = answer
+            update_current_question_status(action="move")
             calculate_and_save_results()
             st.session_state.show_results = True
-            if 'test_in_progress' in st.session_state:
-                del st.session_state.test_in_progress
-            # time.sleep(1) # Delay might cause issues, removed for now
+            st.session_state.test_in_progress = False 
+            for key in ['questions', 'current_question_index', 'user_answers', 'start_time', 'end_time', 'question_statuses']:
+                if key in st.session_state: del st.session_state[key]
             st.rerun()
-        return # Important to stop further execution if time is up
-    # --- END CORRECTION ---
+        return
+    # --- End Time Up Logic ---
 
-    mins, secs = divmod(int(max(0, time_left)), 60); timer_display = f"{mins:02d}:{secs:02d}"
-    col1, col2 = st.columns([3, 1])
-    with col1: st.subheader(f"Time Remaining: {timer_display}")
-    with col2:
-        if st.button("Submit Test Now", use_container_width=True, type="primary"): # Use primary here
-            if st.session_state.get('test_in_progress', False):
-                calculate_and_save_results()
-                st.session_state.show_results = True
-                if 'test_in_progress' in st.session_state:
-                    del st.session_state.test_in_progress
+    # --- Main Layout: Question Column and Panel Column ---
+    q_col, panel_col = st.columns([2, 1]) # 66% for question, 33% for panel (WIDER PANEL)
+
+    with q_col:
+        # --- Timer and Submit Button ---
+        mins, secs = divmod(int(max(0, time_left)), 60); timer_display = f"{mins:02d}:{secs:02d}"
+        t_col1, t_col2 = st.columns([3, 1])
+        with t_col1: st.subheader(f"Time Remaining: {timer_display}")
+        with t_col2:
+            if st.button("Submit Test Now", use_container_width=True, type="primary"):
+                if st.session_state.get('test_in_progress', False):
+                    update_current_question_status(action="move")
+                    calculate_and_save_results()
+                    st.session_state.show_results = True
+                    st.session_state.test_in_progress = False
+                    for key in ['questions', 'current_question_index', 'user_answers', 'start_time', 'end_time', 'question_statuses']:
+                        if key in st.session_state: del st.session_state[key]
+                    st.rerun()
+        total_duration = st.session_state.end_time - st.session_state.start_time; progress_value = max(0.0, time_left / max(1, total_duration))
+        st.progress(progress_value); st.divider()
+        # --- End Timer/Submit ---
+        
+        # --- Question Display ---
+        if not questions or q_index >= len(questions): st.error("Error: Questions missing."); st.stop()
+        q = questions[q_index]
+        st.subheader(f"Question {q_index + 1} of {total_q}"); st.markdown(f"**{q.get('question_text', 'Missing question text')}**")
+        options = {'a': q.get('option_a',''), 'b': q.get('option_b',''), 'c': q.get('option_c',''), 'd': q.get('option_d','')}
+        option_keys = list(options.keys()); 
+        
+        if 'user_answers' not in st.session_state: st.session_state.user_answers = {}
+        saved_answer = st.session_state.user_answers.get(q_index, None) 
+        current_index = None
+        if saved_answer in option_keys:
+            try: current_index = option_keys.index(saved_answer)
+            except ValueError: pass
+        
+        with st.container():
+            user_choice = st.radio(
+                "Choose:", option_keys, 
+                format_func=lambda k: f"{k}) {options.get(k,'Invalid Option')}", 
+                index=current_index, 
+                key=f"q_{q_index}"
+            )
+        
+        if user_choice is not None:
+             st.session_state.user_answers[q_index] = user_choice
+        # --- End Radio Button Logic ---
+
+        st.divider()
+        # --- End Question Display ---
+
+        # --- NEW Navigation Buttons ---
+        nav_col1, nav_col2, nav_col3 = st.columns([1, 2, 1])
+        with nav_col1:
+            if st.button("⬅️ Previous", key=f"prev_{q_index}", disabled=(q_index <= 0), use_container_width=True, type="primary"):
+                update_current_question_status(action="move")
+                if q_index > 0: 
+                    st.session_state.current_question_index -= 1
+                    st.rerun()
+        with nav_col2:
+            if st.button("Marked For Review", key=f"mark_{q_index}", use_container_width=True):
+                st.session_state.question_statuses[q_index] = 'purple'
+                answer = st.session_state.get(f"q_{q_index}") # Get current radio choice
+                if answer: st.session_state.user_answers[q_index] = answer # Save it
+                if q_index < total_q - 1: 
+                    st.session_state.current_question_index += 1
                 st.rerun()
-    total_duration = st.session_state.end_time - st.session_state.start_time; progress_value = max(0.0, time_left / max(1, total_duration))
-    st.progress(progress_value); st.divider()
-    q_index = st.session_state.current_question_index; questions = st.session_state.questions
-    if not questions or q_index >= len(questions): st.error("Error: Questions missing or index out of range."); st.stop()
-    q = questions[q_index]; total_q = len(questions)
-    st.subheader(f"Question {q_index + 1} of {total_q}"); st.markdown(f"**{q.get('question_text', 'Missing question text')}**")
-    options = {'a': q.get('option_a',''), 'b': q.get('option_b',''), 'c': q.get('option_c',''), 'd': q.get('option_d','')}
-    option_keys = list(options.keys()); saved_answer = st.session_state.user_answers.get(q_index); current_index = None
-    if saved_answer in option_keys:
-        try: current_index = option_keys.index(saved_answer)
-        except ValueError: current_index = None
-    with st.container():
-        user_choice = st.radio("Choose:", option_keys, format_func=lambda k: f"{k}) {options.get(k,'Invalid Option')}", index=current_index, key=f"q_{q_index}")
-    if user_choice is not None: st.session_state.user_answers[q_index] = user_choice
-    st.divider(); nav_col1, _, nav_col3 = st.columns([1, 1, 1])
-    with nav_col1:
-        # Use type="primary" for Nav Buttons
-        if st.button("⬅️ Previous", key=f"prev_{q_index}", disabled=(q_index <= 0), type="primary"): # Use primary
-             if q_index > 0: st.session_state.current_question_index -= 1; st.rerun()
-    with nav_col3:
-        if st.button("Next ➡️", key=f"next_{q_index}", disabled=(q_index >= total_q - 1), type="primary"): # Use primary
-             if q_index < total_q - 1: st.session_state.current_question_index += 1; st.rerun()
+        with nav_col3:
+            # --- UPDATED Save and Next ---
+            if st.button("Save and Next ➡️", key=f"next_{q_index}", disabled=(q_index >= total_q - 1), use_container_width=True, type="primary"):
+                update_current_question_status(action="save_and_next") # Use new action
+                if q_index < total_q - 1: 
+                    st.session_state.current_question_index += 1
+                    st.rerun()
+            # --- END UPDATED ---
+        # --- End NEW Navigation ---
+
+    # --- NEW Question Panel ---
+    with panel_col:
+        st.subheader("Question Panel")
+        
+        # Legend
+        st.markdown(
+            "<span style='color: #28a745; font-weight: bold;'>● Green:</span> Attempted<br>"
+            "<span style='color: #FF4B4B; font-weight: bold;'>● Red:</span> Unattempted<br>"
+            "<span style='color: #8A2BE2; font-weight: bold;'>● Purple:</span> Marked for Review<br>"
+            "<span style='color: #007BFF; font-weight: bold;'>● Blue:</span> Current Question",
+            unsafe_allow_html=True
+        )
+        st.divider()
+
+        # Check if question_statuses is initialized
+        if 'question_statuses' not in st.session_state:
+            st.session_state.question_statuses = ['red'] * total_q
+
+        # --- NEW GRID LOGIC ---
+        num_questions = len(st.session_state.question_statuses)
+        cols_per_row = 4 # 4 columns for a wider panel
+        
+        for i in range(num_questions):
+            # Create a new row of columns for the first button of each row
+            if i % cols_per_row == 0:
+                # This creates a new set of 4 columns for every 4th button
+                cols = st.columns(cols_per_row)
+            
+            # Determine the style class for this button
+            status = st.session_state.question_statuses[i]
+            if i == q_index:
+                style_class = "status-current" # Current question
+            else:
+                style_class = f"status-{status}" # green, red, or purple
+            
+            # Place the button inside its designated column
+            with cols[i % cols_per_row]:
+                # --- THIS IS THE FIX ---
+                # We place an empty, styled div *immediately before* the button.
+                # The CSS selector `div.status-green + div[data-testid="stButton"] button`
+                # will find the div, then style the button next to it.
+                st.markdown(f'<div class="{style_class}"></div>', unsafe_allow_html=True)
+                if st.button(
+                    f"{i + 1}",
+                    key=f"panel_{i}",
+                    on_click=on_panel_click,
+                    args=(i,)
+                ):
+                    # on_click handles the logic
+                    pass 
+                # We NO LONGER need the closing markdown div
+                # --- END FIX ---
+        # --- END NEW GRID LOGIC ---
+    # --- END NEW Question Panel ---
+
 
 def show_results_page():
-    st.title("Test Results 📊") # <-- TITLE HERE
-    # --- Startup Check logic needs to be run if this view loads first ---
-    run_startup_check() # Call the check function defined globally
+    st.title("Test Results 📊")
+    run_startup_check() # Run startup check
 
     if 'final_results' not in st.session_state: st.error("Results not found."); st.stop()
     results = st.session_state.final_results; st.success(f"Score: **{results.get('score', 0):.2f}%**")
@@ -297,8 +475,7 @@ def show_results_page():
     if 'results_df' in results and isinstance(results['results_df'], pd.DataFrame): st.dataframe(results['results_df'], use_container_width=True, hide_index=True)
     else: st.warning("Detailed results data missing.")
     st.divider()
-    # Use type="primary" for Take Another Test Button
-    if st.button("Take Another Test ↩️", use_container_width=True, type="primary"): # Use primary
+    if st.button("Take Another Test ↩️", use_container_width=True, type="primary"):
         keys_to_keep = ['logged_in', 'username', 'user_id', 'startup_check_done']
         for key in list(st.session_state.keys()):
             if key not in keys_to_keep: del st.session_state[key]
